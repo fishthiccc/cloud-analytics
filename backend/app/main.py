@@ -1,22 +1,22 @@
 from fastapi import FastAPI, Depends, HTTPException, APIRouter
-from app.api.v1.routers import router as metrics_router
+from app.api.v1.routers import towns_router, weather_router
 from app.db.database import SessionLocal, engine, Base
+from app.models import town
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import asyncio
 from app.api.tasks import weather_update
 
-#Create the database tables
-Base.metadata.create_all(bind=engine)
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    #Create the database tables
+    Base.metadata.create_all(bind=engine)
+
     # Start the background task for weather updates
     task = asyncio.create_task(weather_update())
     yield
     # Cancel the background task on shutdown
     task.cancel()
-
 
 app=FastAPI(title="Cloud Analytics API", version="1.0.0",lifespan=lifespan)
 
@@ -29,11 +29,9 @@ app.add_middleware(
     allow_credentials=True,
 )
 
-app.include_router(metrics_router)
-
+app.include_router(towns_router)
+app.include_router(weather_router)
 
 @app.get("/")
 def root():
     return {"message": "Welcome to the Cloud Analytics API!"}
-
-

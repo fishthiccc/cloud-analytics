@@ -1,18 +1,18 @@
 import os
 import httpx
 from dotenv import load_dotenv
+from datetime import datetime
+
 
 # Load environment variables from .env file
 load_dotenv()
 
 API_KEY = os.getenv("OPENWEATHER_API_KEY")
-print(API_KEY)  # Debugging line to check if the API key is loaded correctly
 BASE_URL = "http://api.openweathermap.org/data/2.5/weather"
 
 async def fetch_temp(town: str) -> dict | None:
     """
     Fetch current temperature for a town in Ireland from OpenWeatherMap.
-    Returns a dictionary compatible with MetricCreate schema.
     """
     params = {
           "q": f"{town},IE",
@@ -27,8 +27,19 @@ async def fetch_temp(town: str) -> dict | None:
             data = response.json()
                
             return {
+                "timestamp": datetime.utcfromtimestamp(data["dt"]),
                 "name": town.upper(),
-                "value": data["main"]["temp"]
+                "latitude": data["coord"]["lat"],
+                "longitude": data["coord"]["lon"],
+                "region": data["sys"]["country"],
+                "temperature": data["main"]["temp"],
+                "feels_like": data["main"]["feels_like"],
+                "humidity": data["main"]["humidity"],
+                "pressure": data["main"]["pressure"],
+                "wind_speed": data["wind"]["speed"],
+                "wind_direction": data["wind"]["deg"],
+                "cloud_coverage": data["clouds"]["all"],
+                "rainfall": 0
             }
      
         except httpx.RequestError as e:

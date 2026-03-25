@@ -6,11 +6,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import asyncio
 from app.api.tasks import weather_update
+from app.services.metrics import _reassign_chronological_ids
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     #Create the database tables
     Base.metadata.create_all(bind=engine)
+    
+    # Reassign chronological IDs on startup
+    _reassign_chronological_ids()
 
     # Start the background task for weather updates
     task = asyncio.create_task(weather_update())

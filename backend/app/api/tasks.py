@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from app.services.weather import fetch_temp
-from app.services.metrics import create_weather_observation, get_or_create_town
+from app.services.metrics import create_weather_observation, get_or_create_town, _reassign_chronological_ids
 from app.db.database import SessionLocal
 from app.schemas.schemas import TownCreate, WeatherObservationCreate
 
@@ -45,6 +45,9 @@ async def weather_update_once():
                 create_weather_observation(town_name, weather_observation_schema)
                 logging.info(f"Weather data for {town} stored successfully.")
         logging.info("One-off weather update completed.")
+        
+        # Reassign IDs based on chronological order
+        _reassign_chronological_ids()
     finally:
         db.close()
 
